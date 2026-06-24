@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Båtkostnader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --navy:#0d1b2a;
+      --navy2:#162032;
+      --navy3:#1e2d42;
+      --navy4:#253550;
+      --rope:#c8a96e;
+      --rope-dim:rgba(200,169,110,0.15);
+      --rope-border:rgba(200,169,110,0.3);
+      --water:#3a8fc1;
+      --water-dim:rgba(58,143,193,0.12);
+      --green:#3ecf8e;
+      --green-dim:rgba(62,207,142,0.12);
+      --red:#f06565;
+      --red-dim:rgba(240,101,101,0.12);
+      --amber:#f5a623;
+      --amber-dim:rgba(245,166,35,0.12);
+      --text:#e8edf4;
+      --muted:#7a8ea8;
+      --border:rgba(255,255,255,0.07);
+      --border2:rgba(255,255,255,0.13);
+      --surface:rgba(255,255,255,0.04);
+      --surface2:rgba(255,255,255,0.07);
+    }
+    html,body{min-height:100vh;background:var(--navy);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none}
+    button{font-family:'Inter',sans-serif;cursor:pointer}
+    input,select,textarea{font-family:'Inter',sans-serif}
+
+    /* Layout */
+    .app{max-width:960px;margin:0 auto;padding:0 16px 80px}
+
+    /* Header */
+    .site-header{display:flex;align-items:center;gap:14px;padding:24px 0 20px;border-bottom:1px solid var(--border);margin-bottom:24px}
+    .boat-icon{font-size:28px;line-height:1}
+    .site-header h1{font-size:20px;font-weight:600;letter-spacing:-0.02em;color:var(--text)}
+    .site-header .subtitle{font-size:12px;color:var(--muted);margin-top:1px}
+    .header-actions{margin-left:auto;display:flex;gap:8px}
+
+    /* Summary cards */
+    .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:24px}
+    .summary-card{background:var(--navy2);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+    .summary-card .label{font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+    .summary-card .value{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--text);letter-spacing:-0.02em}
+    .summary-card .sub{font-size:11px;color:var(--muted);margin-top:2px}
+    .summary-card.accent{border-color:var(--rope-border);background:var(--navy2)}
+    .summary-card.accent .value{color:var(--rope)}
+
+    /* Tabs */
+    .tabs{display:flex;gap:2px;background:var(--navy2);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:20px;width:fit-content}
+    .tab{padding:6px 16px;border-radius:6px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:500;transition:all 0.15s;cursor:pointer}
+    .tab.active{background:var(--navy4);color:var(--text)}
+    .tab-panel{display:none}
+    .tab-panel.active{display:block}
+
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text);font-size:13px;font-weight:500;transition:all 0.15s;cursor:pointer}
+    .btn:hover{background:var(--surface2)}
+    .btn-primary{background:var(--rope);border-color:var(--rope);color:var(--navy);font-weight:600}
+    .btn-primary:hover{background:#d4b67e;border-color:#d4b67e}
+    .btn-sm{padding:5px 10px;font-size:12px;border-radius:5px}
+    .btn-danger{color:var(--red);border-color:rgba(240,101,101,0.3)}
+    .btn-danger:hover{background:var(--red-dim)}
+    .btn-ghost{border-color:transparent}
+    .btn-ghost:hover{background:var(--surface)}
+
+    /* Form */
+    .form-card{background:var(--navy2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+    .form-card h2{font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-group{display:flex;flex-direction:column;gap:5px}
+    .form-group.full{grid-column:1/-1}
+    .form-label{font-size:12px;font-weight:500;color:var(--muted)}
+    .form-input{background:var(--navy3);border:1px solid var(--border2);border-radius:7px;padding:8px 11px;color:var(--text);font-size:13px;outline:none;transition:border-color 0.15s;width:100%}
+    .form-input:focus{border-color:var(--rope)}
+    .form-input::placeholder{color:var(--muted)}
+    select.form-input option{background:var(--navy3);color:var(--text)}
+    .form-actions{display:flex;gap:8px;margin-top:16px;align-items:center}
+
+    /* Expense list */
+    .expense-list{display:flex;flex-direction:column;gap:8px}
+    .expense-item{background:var(--navy2);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color 0.15s;cursor:pointer}
+    .expense-item:hover{border-color:var(--border2)}
+    .expense-main{display:flex;align-items:center;gap:12px;padding:12px 14px}
+    .expense-icon{width:36px;height:36px;border-radius:8px;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+    .expense-info{flex:1;min-width:0}
+    .expense-title{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .expense-meta{font-size:11px;color:var(--muted);margin-top:1px}
+    .expense-amount{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--text);flex-shrink:0}
+    .expense-status{flex-shrink:0}
+    .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500}
+    .badge-paid{background:var(--green-dim);color:var(--green);border:1px solid rgba(62,207,142,0.2)}
+    .badge-unpaid{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,0.2)}
+    .badge-partial{background:var(--water-dim);color:var(--water);border:1px solid rgba(58,143,193,0.2)}
+
+    /* Expense detail */
+    .expense-detail{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
+    .expense-detail.open{display:block}
+    .detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px;padding-top:12px}
+    .detail-item .dk{font-size:11px;color:var(--muted);margin-bottom:2px}
+    .detail-item .dv{font-size:13px;font-weight:500;color:var(--text)}
+    .payment-rows{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+    .payment-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--navy3);border-radius:7px}
+    .payment-row .pr-name{flex:1;font-size:13px}
+    .payment-row .pr-amount{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
+    .payment-row .pr-toggle{margin-left:auto}
+    .toggle-check{width:18px;height:18px;accent-color:var(--green);cursor:pointer}
+
+    /* Settlement view */
+    .settlement-section{margin-bottom:24px}
+    .settlement-section h3{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px}
+    .settlement-card{background:var(--navy2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
+    .settlement-header{display:flex;align-items:center;gap:10px;padding:12px 14px}
+    .avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+    .settlement-header .person-name{font-size:14px;font-weight:500}
+    .settlement-header .person-sub{font-size:11px;color:var(--muted)}
+    .settlement-header .total-badge{margin-left:auto;font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
+    .settlement-header .total-badge.owed{color:var(--green)}
+    .settlement-header .total-badge.owes{color:var(--amber)}
+    .settlement-header .total-badge.even{color:var(--muted)}
+    .transfers{padding:0 14px 12px;display:flex;flex-direction:column;gap:5px}
+    .transfer-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);padding:5px 8px;background:var(--surface);border-radius:5px}
+    .transfer-row .t-amount{font-family:'DM Mono',monospace;font-weight:500;color:var(--text)}
+    .transfer-row .arrow{color:var(--rope)}
+
+    /* Users */
+    .users-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+    .user-card{background:var(--navy2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px}
+    .user-card .avatar{width:36px;height:36px;font-size:15px}
+    .user-card .u-name{font-size:14px;font-weight:500}
+    .user-card .u-role{font-size:11px;color:var(--muted)}
+    .user-card .u-actions{margin-left:auto}
+    .add-user-form{background:var(--navy2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+    .add-user-form h3{font-size:14px;font-weight:600;margin-bottom:12px}
+
+    /* History */
+    .history-list{display:flex;flex-direction:column;gap:6px}
+    .history-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--navy2);border:1px solid var(--border);border-radius:8px}
+    .history-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+    .history-dot.add{background:var(--green)}
+    .history-dot.edit{background:var(--water)}
+    .history-dot.delete{background:var(--red)}
+    .history-dot.pay{background:var(--rope)}
+    .history-text{font-size:12px;color:var(--muted);flex:1}
+    .history-text strong{color:var(--text);font-weight:500}
+    .history-time{font-size:11px;color:var(--muted);flex-shrink:0;margin-top:1px}
+
+    /* Filter bar */
+    .filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+    .filter-select{background:var(--navy2);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;color:var(--text);font-size:12px;outline:none}
+    .filter-select:focus{border-color:var(--rope)}
+
+    /* Modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:16px}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--navy2);border:1px solid var(--border2);border-radius:14px;padding:24px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto}
+    .modal h2{font-size:16px;font-weight:600;margin-bottom:16px}
+    .modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+
+    /* Toast */
+    .toast-container{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+    .toast{background:var(--navy4);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:13px;color:var(--text);opacity:0;transform:translateY(8px);transition:all 0.25s;pointer-events:auto}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .toast.success{border-left:3px solid var(--green)}
+    .toast.error{border-left:3px solid var(--red)}
+    .toast.info{border-left:3px solid var(--water)}
+
+    /* Empty state */
+    .empty{text-align:center;padding:48px 20px;color:var(--muted)}
+    .empty .empty-icon{font-size:40px;margin-bottom:12px}
+    .empty p{font-size:13px}
+
+    /* Utility */
+    .mono{font-family:'DM Mono',monospace}
+    .text-muted{color:var(--muted)}
+    .text-green{color:var(--green)}
+    .text-red{color:var(--red)}
+    .text-rope{color:var(--rope)}
+    .mt-8{margin-top:8px}
+    .mt-12{margin-top:12px}
+    hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
+    .hidden{display:none!important}
+
+    @media(max-width:600px){
+      .form-grid{grid-template-columns:1fr}
+      .form-group.full{grid-column:1}
+      .summary-grid{grid-template-columns:1fr 1fr}
+      .site-header h1{font-size:17px}
+      .tabs{width:100%}
+      .tab{flex:1;text-align:center;padding:6px 8px}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="site-header">
+    <div class="boat-icon">⛵</div>
+    <div>
+      <h1>Båtkostnader</h1>
+      <div class="subtitle" id="boat-subtitle">Dela kostnader enkelt</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-sm" onclick="window.app.exportData()" title="Exportera data">⬇ Exportera</button>
+      <button class="btn btn-sm" onclick="document.getElementById('import-file').click()" title="Importera data">⬆ Importera</button>
+      <input type="file" id="import-file" accept=".json" class="hidden" onchange="window.app.importData(event)"/>
+    </div>
+  </header>
+
+  <!-- Summary cards -->
+  <div class="summary-grid" id="summary-grid"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="window.app.switchTab('kostnader')">Kostnader</button>
+    <button class="tab" onclick="window.app.switchTab('avrakning')">Avräkning</button>
+    <button class="tab" onclick="window.app.switchTab('anvandare')">Delägare</button>
+    <button class="tab" onclick="window.app.switchTab('historik')">Historik</button>
+  </div>
+
+  <!-- Tab: Kostnader -->
+  <div class="tab-panel active" id="tab-kostnader">
+    <div class="form-card">
+      <h2>Lägg till kostnad</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Titel</label>
+          <input class="form-input" id="f-title" type="text" placeholder="t.ex. Diesel, Reparation..."/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Belopp (kr)</label>
+          <input class="form-input mono" id="f-amount" type="number" min="0" step="0.01" placeholder="0,00"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Datum</label>
+          <input class="form-input" id="f-date" type="date"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Betald av</label>
+          <select class="form-input" id="f-paidby"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kategori</label>
+          <select class="form-input" id="f-category">
+            <option value="bränsle">⛽ Bränsle</option>
+            <option value="underhall">🔧 Underhåll & reparation</option>
+            <option value="hamn">⚓ Hamnavgift</option>
+            <option value="forsäkring">📋 Försäkring & avgifter</option>
+            <option value="utrustning">🧰 Utrustning</option>
+            <option value="mat">🍱 Mat & förnödenheter</option>
+            <option value="ovrigt" selected>📦 Övrigt</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anteckning</label>
+          <input class="form-input" id="f-note" type="text" placeholder="Valfri anteckning"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="window.app.addExpense()">Spara kostnad</button>
+        <button class="btn btn-ghost" onclick="window.app.clearForm()">Rensa</button>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <select class="filter-select" id="filter-user" onchange="window.app.renderExpenses()">
+        <option value="">Alla delägare</option>
+      </select>
+      <select class="filter-select" id="filter-cat" onchange="window.app.renderExpenses()">
+        <option value="">Alla kategorier</option>
+        <option value="bränsle">⛽ Bränsle</option>
+        <option value="underhall">🔧 Underhåll</option>
+        <option value="hamn">⚓ Hamnavgift</option>
+        <option value="forsäkring">📋 Försäkring</option>
+        <option value="utrustning">🧰 Utrustning</option>
+        <option value="mat">🍱 Mat</option>
+        <option value="ovrigt">📦 Övrigt</option>
+      </select>
+      <select class="filter-select" id="filter-status" onchange="window.app.renderExpenses()">
+        <option value="">Alla status</option>
+        <option value="paid">Helt betald</option>
+        <option value="partial">Delvis betald</option>
+        <option value="unpaid">Obetald</option>
+      </select>
+      <span style="margin-left:auto;font-size:12px;color:var(--muted)" id="expense-count"></span>
+    </div>
+
+    <div class="expense-list" id="expense-list"></div>
+  </div>
+
+  <!-- Tab: Avräkning -->
+  <div class="tab-panel" id="tab-avrakning">
+    <div id="settlement-view"></div>
+  </div>
+
+  <!-- Tab: Användare -->
+  <div class="tab-panel" id="tab-anvandare">
+    <div class="add-user-form">
+      <h3>Lägg till delägare</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">
+        <div class="form-group">
+          <label class="form-label">Namn</label>
+          <input class="form-input" id="u-name" type="text" placeholder="Förnamn Efternamn"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Roll</label>
+          <select class="form-input" id="u-role">
+            <option value="delägare">Delägare</option>
+            <option value="admin">Administratör</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="window.app.addUser()" style="height:36px">Lägg till</button>
+      </div>
+    </div>
+    <div class="users-grid" id="users-grid"></div>
+  </div>
+
+  <!-- Tab: Historik -->
+  <div class="tab-panel" id="tab-historik">
+    <div class="history-list" id="history-list"></div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h2>Redigera kostnad</h2>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Titel</label><input class="form-input" id="e-title" type="text"/></div>
+      <div class="form-group"><label class="form-label">Belopp (kr)</label><input class="form-input mono" id="e-amount" type="number"/></div>
+      <div class="form-group"><label class="form-label">Datum</label><input class="form-input" id="e-date" type="date"/></div>
+      <div class="form-group"><label class="form-label">Betald av</label><select class="form-input" id="e-paidby"></select></div>
+      <div class="form-group"><label class="form-label">Kategori</label>
+        <select class="form-input" id="e-category">
+          <option value="bränsle">⛽ Bränsle</option>
+          <option value="underhall">🔧 Underhåll & reparation</option>
+          <option value="hamn">⚓ Hamnavgift</option>
+          <option value="forsäkring">📋 Försäkring & avgifter</option>
+          <option value="utrustning">🧰 Utrustning</option>
+          <option value="mat">🍱 Mat & förnödenheter</option>
+          <option value="ovrigt">📦 Övrigt</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Anteckning</label><input class="form-input" id="e-note" type="text"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="window.app.deleteExpense(window.app.currentEditId)">Ta bort</button>
+      <button class="btn btn-ghost" onclick="window.app.closeModal('edit-modal')">Avbryt</button>
+      <button class="btn btn-primary" onclick="window.app.saveEdit()">Spara ändringar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="js/utils.js"></script>
+<script src="js/data.js"></script>
+<script src="js/services.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
